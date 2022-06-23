@@ -1,13 +1,23 @@
+# if you have issues generating the environment in conda, try to run the
+# following command:
+# conda config --set channel_priority strict
+# https://knowledge.udacity.com/questions/861138
+
+# if you get an error from wandb add the following before mlflow run:
+# PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
+
 name: eda
 channels:
   - conda-forge
   - defaults
 dependencies:
+  - python=3.8
   - jupyterlab=3.0.12
   - seaborn=0.11.1
   - pandas=1.2.3
   - pip=20.3.3
   - pandas-profiling=2.11.0
   - pyarrow=2.0
+  - jinja2=3.0.3
   - pip:
       - wandb==0.10.31
