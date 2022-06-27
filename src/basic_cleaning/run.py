@@ -25,7 +25,8 @@ def go(args):
 
     df = pd.read_csv(input_artifact_path)
 
-    logging.info(f"Remove samples outside the range {args.min_price} - {args.max_price}")
+    logging.info(
+        f"Remove samples outside the range {args.min_price} - {args.max_price}")
     idx = df['price'].between(args.min_price, args.max_price)
     df = df[idx].copy()
 
@@ -34,7 +35,8 @@ def go(args):
 
     logging.info('Remove rows outside the boundries')
 
-    idx = df['longitude'].between(-74.25, -73.50) & df['latitude'].between(40.5, 41.2)
+    idx = df['longitude'].between(-74.25, -
+                                  73.50) & df['latitude'].between(40.5, 41.2)
     df = df[idx].copy()
 
     df.to_csv('clean_sample.csv', index=False)
@@ -53,7 +55,6 @@ def go(args):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="A very basic data cleaning")
-
 
     parser.add_argument(
         "--input_artifact",
@@ -96,7 +97,6 @@ if __name__ == "__main__":
         help='Insert the maximum price of the property to consider. Date releated to property with higher price will be removed',
         required=True
     )
-
 
     args = parser.parse_args()
 
