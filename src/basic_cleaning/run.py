@@ -32,6 +32,11 @@ def go(args):
     logging.info(f'Convert last_review field to datatime')
     df['last_review'] = pd.to_datetime(df['last_review'])
 
+    logging.info('Remove rows outside the boundries')
+
+    idx = df['longitude'].between(-74.25, -73.50) & df['latitude'].between(40.5, 41.2)
+    df = df[idx].copy()
+
     df.to_csv('clean_sample.csv', index=False)
 
     logging.info(f'Upload dataset after basic data cleaning')
