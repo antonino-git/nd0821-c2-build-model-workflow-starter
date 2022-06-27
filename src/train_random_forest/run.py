@@ -24,6 +24,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error
 from sklearn.pipeline import Pipeline, make_pipeline
 
+EXPORT_FOLDER = "random_forest_dir"
 
 def delta_date_feature(dates):
     """
@@ -54,7 +55,8 @@ def go(args):
     ######################################
     # Use run.use_artifact(...).file() to get the train and validation artifact (args.trainval_artifact)
     # and save the returned path in train_local_pat
-    trainval_local_path = # YOUR CODE HERE
+    artifact_train = run.use_artifact(args.trainval_artifact)
+    trainval_local_path = artifact_train.file()
     ######################################
 
     X = pd.read_csv(trainval_local_path)
@@ -73,9 +75,11 @@ def go(args):
     # Then fit it to the X_train, y_train data
     logger.info("Fitting")
 
+    sk_pipe.fit(X_train, y_train)
+
     ######################################
     # Fit the pipeline sk_pipe by calling the .fit method on X_train and y_train
-    # YOUR CODE HERE
+    sk_pipe.fit(X_train, y_train)
     ######################################
 
     # Compute r2 and MAE
@@ -91,13 +95,13 @@ def go(args):
     logger.info("Exporting model")
 
     # Save model package in the MLFlow sklearn format
-    if os.path.exists("random_forest_dir"):
-        shutil.rmtree("random_forest_dir")
+    if os.path.exists(EXPORT_FOLDER):
+        shutil.rmtree(EXPORT_FOLDER)
 
     ######################################
     # Save the sk_pipe pipeline as a mlflow.sklearn model in the directory "random_forest_dir"
     # HINT: use mlflow.sklearn.save_model
-    # YOUR CODE HERE
+    mlflow.sklearn.save_model(sk_pipe, EXPORT_FOLDER)
     ######################################
 
     ######################################
@@ -106,7 +110,10 @@ def go(args):
     # type, provide a description and add rf_config as metadata. Then, use the .add_dir method of the artifact instance
     # you just created to add the "random_forest_dir" directory to the artifact, and finally use
     # run.log_artifact to log the artifact to the run
-    # YOUR CODE HERE
+    model_export_artifact = wandb.Artifact(args.output_artifact,
+        type="model_export", description="resulting model", metadata=rf_config)
+    model_export_artifact.add_dir(EXPORT_FOLDER)
+    run.log_artifact(model_export_artifact)
     ######################################
 
     # Plot feature importance
@@ -116,7 +123,7 @@ def go(args):
     # Here we save r_squared under the "r2" key
     run.summary['r2'] = r_squared
     # Now log the variable "mae" under the key "mae".
-    # YOUR CODE HERE
+    run.summary['mae'] = mae
     ######################################
 
     # Upload to W&B the feture importance visualization
@@ -158,7 +165,9 @@ def get_inference_pipeline(rf_config, max_tfidf_features):
     # Build a pipeline with two steps:
     # 1 - A SimpleImputer(strategy="most_frequent") to impute missing values
     # 2 - A OneHotEncoder() step to encode the variable
-    non_ordinal_categorical_preproc = # YOUR CODE HERE
+    non_ordinal_categorical_preproc = make_pipeline(
+        SimpleImputer(strategy="most_frequent"),
+        OneHotEncoder())
     ######################################
 
     # Let's impute the numerical columns to make sure we can handle missing values
@@ -217,7 +226,12 @@ def get_inference_pipeline(rf_config, max_tfidf_features):
     # ColumnTransformer instance that we saved in the `preprocessor` variable, and a step called "random_forest"
     # with the random forest instance that we just saved in the `random_forest` variable.
     # HINT: Use the explicit Pipeline constructor so you can assign the names to the steps, do not use make_pipeline
-    sk_pipe = # YOUR CODE HERE
+    sk_pipe = Pipeline(
+        steps=[
+            ("preprocessor", preprocessor),
+            ("random_forest", random_Forest),
+        ],
+    )
 
     return sk_pipe, processed_features
 
